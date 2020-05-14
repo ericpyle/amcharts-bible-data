@@ -6,7 +6,7 @@ import traverse from 'traverse';
 function transformToVerses(acc, bookDataNode) {
   if (this.key === "verses") {
     const chapter = this.parent.node["chapter"];
-    const book = this.parent.parent.parent.node["name"];
+    const book = this.parent.parent.parent.node["book"];
     const versesWithContext = bookDataNode.map((verse) => [
       { verse: verse.verse, text: verse.text, chapter, book },
     ]);
