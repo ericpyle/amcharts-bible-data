@@ -1,14 +1,17 @@
 import traverse from 'traverse';
-// import bookNames from './Bible-kjv/Books.json';
-// import * as booksData from './Bible-kjv/';
-// import loadJsonFile from 'load-json-file';
+
+function getVerseData(verseInfo, chapter, book) {
+  const { verse, text } = verseInfo;
+  const wordCount = text.split(' ').length;
+  return ({ book, chapter, verse, wordCount, text }); 
+}
 
 function transformToVerses(acc, bookDataNode) {
   if (this.key === "verses") {
     const chapter = this.parent.node["chapter"];
     const book = this.parent.parent.parent.node["book"];
     const versesWithContext = bookDataNode.map((verse) =>
-      ({ verse: verse.verse, text: verse.text, chapter, book })
+      getVerseData(verse, chapter, book)
     );
     return [...acc, ...versesWithContext];
   }
