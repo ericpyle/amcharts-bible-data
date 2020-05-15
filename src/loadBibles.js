@@ -1,21 +1,24 @@
 import traverse from 'traverse';
 
-function getVerseData(verseInfo, chapter, book) {
+function getVerseData(accVerses, verseInfo, chapter, book) {
+  const { versesWithContext: prevVersesWithContext, bookPosition } = accVerses;
   const { verse, text } = verseInfo;
-  const wordCount = text.split(' ').length;
-  return ({ book, chapter, verse, wordCount, text }); 
+  const verseWordCount = text.split(' ').length;
+  const nextBookPosition = bookPosition + verseWordCount;
+  const versesWithContext = [...prevVersesWithContext, { book, chapter, verse, bookPosition, verseWordCount, text }];
+  return { bookPosition: nextBookPosition, versesWithContext }; 
 }
 
-function transformToVerses(acc, bookDataNode) {
+function transformToVerses(accBook, bookDataNode) {
   if (this.key === "verses") {
     const chapter = this.parent.node["chapter"];
     const book = this.parent.parent.parent.node["book"];
-    const versesWithContext = bookDataNode.map((verse) =>
-      getVerseData(verse, chapter, book)
+    const { versesWithContext, bookPosition } = bookDataNode.reduce((accVerses, verse) =>
+      getVerseData(accVerses, verse, chapter, book), { bookPosition: accBook.totalBookWordPosition, versesWithContext: [] }
     );
-    return [...acc, ...versesWithContext];
+    return { totalBookWordPosition: bookPosition,  versesWithContext: [...accBook.versesWithContext, ...versesWithContext] };
   }
-  return acc;
+  return accBook;
 }
 
 
@@ -30,8 +33,8 @@ export async function loadBookData() {
         if (!bookResponse.ok)
             return [{book: bookName}];
         const bookData = await bookResponse.json();
-        const versesInBook = traverse(bookData).reduce(transformToVerses, []);
-        return versesInBook;
+        const { versesWithContext }  = traverse(bookData).reduce(transformToVerses, { versesWithContext: [], totalBookWordPosition: 0 });
+        return versesWithContext;
     }));
     const allVersesData = eachBookVersesData.reduce((acc, versesInBook)=>acc.concat(versesInBook), []);
     console.log({ allVersesData });
