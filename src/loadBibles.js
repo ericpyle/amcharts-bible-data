@@ -5,8 +5,20 @@ function getVerseData(accVerses, verseInfo, chapter, book) {
   const { verse, text } = verseInfo;
   const verseWordCount = text.split(' ').length;
   const nextBookPosition = bookPosition + verseWordCount;
-  const versesWithContext = [...prevVersesWithContext, { book, chapter, verse, bookPosition, verseWordCount, text }];
+  const versesWithContext = [...prevVersesWithContext, { book, chapter, verse, bookPosition, verseWordCount, text, textLength: text.length }];
   return { bookPosition: nextBookPosition, versesWithContext }; 
+}
+
+function addBibleWordPositions(accVerses, currentVerseData, iVerse) {
+  let bibleWordPosition = 0;
+  let bibleTextPosition = 0;
+  if (iVerse > 0) {
+    const prevVerseInfo = accVerses[iVerse - 1];
+    bibleWordPosition = prevVerseInfo.bibleWordPosition + prevVerseInfo.verseWordCount;
+    bibleTextPosition = prevVerseInfo.bibleTextPosition + prevVerseInfo.textLength;
+  }
+  accVerses.push({ ...currentVerseData, bibleWordPosition, bibleTextPosition });
+  return accVerses;
 }
 
 function transformToVerses(accBook, bookDataNode) {
@@ -37,8 +49,9 @@ export async function loadBookData() {
         return versesWithContext;
     }));
     const allVersesData = eachBookVersesData.reduce((acc, versesInBook)=>acc.concat(versesInBook), []);
-    console.log({ allVersesData });
-    return allVersesData;
+    const allVersesDataWithBibleWordPositions = allVersesData.reduce(addBibleWordPositions, []);
+    console.log({ allVersesDataWithBibleWordPositions });
+    return allVersesDataWithBibleWordPositions;
 }
 
 export default { loadBookData };
