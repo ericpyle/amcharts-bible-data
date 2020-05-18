@@ -12,52 +12,23 @@ am4core.useTheme(am4themes_animated);
 let chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.paddingRight = 20;
 
+/*
 let data = [];
 let visits = 10;
 for (let i = 1; i < 1000; i++) {
   visits += Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 10);
   data.push({ x: i, value: visits });
 }
+*/
 
-const sampleData = [
-  {
-      "book": "Genesis",
-      "chapter": "1",
-      "verse": "1",
-      "bookPosition": 0,
-      "verseWordCount": 10,
-      "text": "In the beginning God created the heaven and the earth.",
-      "textLength": 54,
-      "bibleWordPosition": 0,
-      "bibleTextPosition": 0
-  },
-  {
-      "book": "Genesis",
-      "chapter": "1",
-      "verse": "2",
-      "bookPosition": 10,
-      "verseWordCount": 29,
-      "text": "And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.",
-      "textLength": 142,
-      "bibleWordPosition": 10,
-      "bibleTextPosition": 54
-  },
-  {
-      "book": "Genesis",
-      "chapter": "1",
-      "verse": "3",
-      "bookPosition": 39,
-      "verseWordCount": 11,
-      "text": "And God said, Let there be light: and there was light.",
-      "textLength": 54,
-      "bibleWordPosition": 39,
-      "bibleTextPosition": 196
-  }
-];
+chart.data = versesData; //.filter(v => v.book === "Genesis");
 
-console.log(versesData);
-chart.data = versesData;
+var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "bibleTextPosition";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.minGridDistance = 30;
 
+/*
 let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
 xAxis.renderer.grid.template.location = 0;
 xAxis.minZoomCount = 5;
@@ -65,6 +36,11 @@ xAxis.minZoomCount = 5;
 xAxis.renderer.labels.template.rotation = 270;
 xAxis.renderer.labels.template.verticalCenter = "middle";
 xAxis.renderer.labels.template.horizontalCenter = "left";
+*/
+
+categoryAxis.renderer.labels.template.rotation = 270;
+categoryAxis.renderer.labels.template.verticalCenter = "middle";
+categoryAxis.renderer.labels.template.horizontalCenter = "left";
 
 function createSingleValueGridLine(valueAxis, value, label) {
   var range = valueAxis.axisRanges.create();
@@ -85,7 +61,7 @@ function createSingleValueGridLine(valueAxis, value, label) {
   // range.label.fontWeight = "bolder";
 }
 
-versesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(xAxis, v.bibleTextPosition, v.book));
+versesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(categoryAxis, v.bibleTextPosition, v.book));
 
 // this makes the data to be grouped
 // xAxis.groupData = true;
@@ -93,15 +69,22 @@ versesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => create
 
 let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
-let series = chart.series.push(new am4charts.LineSeries());
-series.dataFields.valueX = "bibleTextPosition";
+let series = chart.series.push(new am4charts.ColumnSeries());
 series.dataFields.valueY = "textLength";
-series.tooltipText = "{text}";
-series.tooltip.pointerOrientation = "vertical";
-series.tooltip.background.fillOpacity = 0.5;
+series.dataFields.categoryX = "bibleTextPosition";
+series.name = "Verse Length";
+series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/]";
+series.columns.template.fillOpacity = .8;
+// series.tooltipText = "{text}";
+// series.tooltip.pointerOrientation = "vertical";
+// series.tooltip.background.fillOpacity = 0.5;
+
+var columnTemplate = series.columns.template;
+columnTemplate.strokeWidth = 2;
+columnTemplate.strokeOpacity = 1;
 
 chart.cursor = new am4charts.XYCursor();
-chart.cursor.xAxis = xAxis;
+chart.cursor.xAxis = categoryAxis;
 
 let scrollbarX = new am4core.Scrollbar();
 scrollbarX.marginBottom = 20;
