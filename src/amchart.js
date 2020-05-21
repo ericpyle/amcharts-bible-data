@@ -57,7 +57,7 @@ const datedVersesData = versesData.filter(v => v.book === "Genesis").map(addPseu
 chart.data = datedVersesData;
 
 // Create axes
-var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+const dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 dateAxis.renderer.grid.template.location = 0.5;
 dateAxis.renderer.labels.template.location = 0.5;
 dateAxis.renderer.grid.template.location = 0;
@@ -69,7 +69,7 @@ dateAxis.renderer.labels.template.verticalCenter = "top";
 dateAxis.renderer.labels.template.horizontalCenter = "left";
 
 function createSingleValueGridLine(valueAxis, value, label) {
-  var range = valueAxis.axisRanges.create();
+  const range = valueAxis.axisRanges.create();
   range.date = value;
   range.grid.stroke = am4core.color("#396478");
   range.grid.strokeWidth = 2;
@@ -89,10 +89,10 @@ function createSingleValueGridLine(valueAxis, value, label) {
 
 datedVersesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(dateAxis, v.date, v.book));
 
-var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 
 // Create series
-var series = chart.series.push(new am4charts.ColumnSeries());
+const series = chart.series.push(new am4charts.ColumnSeries());
 series.dataFields.valueY = "textLength";
 series.dataFields.dateX = "date";
 series.name = "Verses";
@@ -102,6 +102,63 @@ chart.scrollbarX = new am4core.Scrollbar();
 chart.scrollbarY = new am4core.Scrollbar();
 
 chart.cursor = new am4charts.XYCursor();
+
+const info = chart.plotContainer.createChild(am4core.Container);
+info.width = 1000;
+info.height = 100;
+info.x = 10;
+info.y = 10;
+info.padding(10, 10, 10, 10);
+info.background.fill = am4core.color("#000");
+info.background.fillOpacity = 0.1;
+info.layout = "grid";
+
+// Create labels
+function createLabel(field, title) {
+  const titleLabel = info.createChild(am4core.Label);
+  titleLabel.text = title + ":";
+  titleLabel.marginRight = 5;
+  titleLabel.minWidth = 60;
+
+  const valueLabel = info.createChild(am4core.Label);
+  valueLabel.id = field;
+  valueLabel.text = "-";
+  valueLabel.minWidth = 50;
+  valueLabel.marginRight = 30;
+  valueLabel.fontWeight = "bolder";
+}
+
+createLabel("book", "Book");
+createLabel("chapter", "Chapter");
+createLabel("verse", "Verse");
+createLabel("text", "Text")
+
+// Set up cursor's events to update the label
+chart.cursor.events.on("cursorpositionchanged", function(ev) {
+  const dataItem = dateAxis.getSeriesDataItem(
+    series,
+    dateAxis.toAxisPosition(chart.cursor.xPosition),
+    true
+  );
+  updateValues(dataItem);
+});
+
+// Updates values
+function updateValues(dataItem) {
+  am4core.array.each(["book", "chapter", "verse", "text"], function(key) {
+    const label = chart.map.getKey(key);
+    if (!dataItem)
+      return;
+    const text = dataItem._dataContext[key];
+    label.text = text;
+    if (dataItem.droppedFromOpen) {
+      label.fill = series.dropFromOpenState.properties.fill;
+    }
+    else {
+      label.fill = series.riseFromOpenState.properties.fill;
+    }
+  });
+}
 
 /*
 // Add data
