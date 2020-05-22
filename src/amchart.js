@@ -48,12 +48,19 @@ const sampleData = [
   }
 ];
 
-function addPseudoDateData(verseData) {
-  const date = new Date(verseData.bibleWordPosition);
-  return {...verseData, date };
+let chapterWordPosition = 0;
+function addPseudoDateData(verseData, index, array) {
+  if (verseData.verse === "1") {
+    chapterWordPosition = 0;
+  } else {
+    const prevVerseData = array[index - 1];
+    chapterWordPosition += prevVerseData.verseWordCount;
+  }
+  const date = new Date(verseData.bibleTextPosition);
+  return {...verseData, date, chapterWordPosition };
 }
 
-const datedVersesData = versesData.filter(v => v.book === "Genesis").map(addPseudoDateData);
+const datedVersesData = versesData.filter(v => v.book === "Genesis" || v.book === "Exodus").map(addPseudoDateData);
 chart.data = datedVersesData;
 
 // Create axes
@@ -68,6 +75,9 @@ dateAxis.renderer.labels.template.rotation = 270;
 dateAxis.renderer.labels.template.verticalCenter = "top";
 dateAxis.renderer.labels.template.horizontalCenter = "left";
 dateAxis.cursorTooltipEnabled = false;
+
+dateAxis.groupData = true;
+dateAxis.groupCount = 350;
 
 function createSingleValueGridLine(valueAxis, value, label) {
   const range = valueAxis.axisRanges.create();
@@ -95,7 +105,7 @@ valueAxis.cursorTooltipEnabled = false;
 
 // Create series
 const series = chart.series.push(new am4charts.ColumnSeries());
-series.dataFields.valueY = "textLength";
+series.dataFields.valueY = "chapterWordPosition";
 series.dataFields.dateX = "date";
 series.name = "Verses";
 
@@ -155,12 +165,14 @@ function updateValues(dataItem) {
       return;
     const text = dataItem.dataContext[key];
     label.text = text;
+    /*
     if (dataItem.droppedFromOpen) {
       label.fill = series.dropFromOpenState.properties.fill;
     }
     else {
       label.fill = series.riseFromOpenState.properties.fill;
     }
+    */
   });
 }
 
