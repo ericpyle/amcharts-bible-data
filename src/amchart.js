@@ -67,6 +67,7 @@ dateAxis.renderer.labels.template.disabled = true;
 dateAxis.renderer.labels.template.rotation = 270;
 dateAxis.renderer.labels.template.verticalCenter = "top";
 dateAxis.renderer.labels.template.horizontalCenter = "left";
+dateAxis.cursorTooltipEnabled = false;
 
 function createSingleValueGridLine(valueAxis, value, label) {
   const range = valueAxis.axisRanges.create();
@@ -90,6 +91,7 @@ function createSingleValueGridLine(valueAxis, value, label) {
 datedVersesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(dateAxis, v.date, v.book));
 
 const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.cursorTooltipEnabled = false;
 
 // Create series
 const series = chart.series.push(new am4charts.ColumnSeries());
@@ -104,8 +106,8 @@ chart.scrollbarY = new am4core.Scrollbar();
 chart.cursor = new am4charts.XYCursor();
 
 const info = chart.plotContainer.createChild(am4core.Container);
-info.width = 1000;
-info.height = 100;
+info.width = am4core.percent(100);
+info.height = am4core.percent(20);
 info.x = 10;
 info.y = 10;
 info.padding(10, 10, 10, 10);
@@ -126,6 +128,8 @@ function createLabel(field, title) {
   valueLabel.minWidth = 50;
   valueLabel.marginRight = 30;
   valueLabel.fontWeight = "bolder";
+  valueLabel.wrap = true;
+  valueLabel.maxWidth = 600;
 }
 
 createLabel("book", "Book");
@@ -149,7 +153,7 @@ function updateValues(dataItem) {
     const label = chart.map.getKey(key);
     if (!dataItem)
       return;
-    const text = dataItem._dataContext[key];
+    const text = dataItem.dataContext[key];
     label.text = text;
     if (dataItem.droppedFromOpen) {
       label.fill = series.dropFromOpenState.properties.fill;
@@ -160,6 +164,35 @@ function updateValues(dataItem) {
   });
 }
 
+/*
+series.events.on("hidden", updateTooltipText);
+series.events.on("shown", updateTooltipText);
+*/
+
+/* Add a single tooltip to first series */
+/*
+var tooltipText = `[bold]YEAR {categoryX}[/]
+----
+Cars: {cars}
+Motorcycles: {motorcycles}
+Bicycles: {bicycles}`;
+*/
+/*
+series.tooltip.pointerOrientation = "vertical";
+series.tooltipText = "";
+
+series.adapter.add('tooltipText', (text, target) => {
+  const data = target.tooltipDataItem.dataContext;
+  return `[bold]${data.book} ${data.chapter}:${data.verse}[/]\n${data.text}`;
+});
+*/
+
+/*
+dateAxis.adapter.add("getTooltipText", (text, target) => {
+  const data = target.tooltipDataItem.dataContext;
+  return `[bold]${data.book} ${data.chapter}:${data.verse}[/]`;
+ });
+ */
 /*
 // Add data
 chart.data = [{
