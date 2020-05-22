@@ -60,7 +60,7 @@ function addPseudoDateData(verseData, index, array) {
   return {...verseData, date, chapterWordPosition };
 }
 
-const datedVersesData = versesData.filter(v => v.book === "Genesis" || v.book === "Exodus").map(addPseudoDateData);
+const datedVersesData = versesData.map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
 chart.data = datedVersesData;
 
 // Create axes
@@ -77,7 +77,7 @@ dateAxis.renderer.labels.template.horizontalCenter = "left";
 dateAxis.cursorTooltipEnabled = false;
 
 dateAxis.groupData = true;
-dateAxis.groupCount = 350;
+// dateAxis.groupCount = 350;
 
 function createSingleValueGridLine(valueAxis, value, label) {
   const range = valueAxis.axisRanges.create();
@@ -108,12 +108,20 @@ const series = chart.series.push(new am4charts.ColumnSeries());
 series.dataFields.valueY = "chapterWordPosition";
 series.dataFields.dateX = "date";
 series.name = "Verses";
+series.groupFields.valueY = "max";
 
 // Create scrollbars
 chart.scrollbarX = new am4core.Scrollbar();
 chart.scrollbarY = new am4core.Scrollbar();
 
 chart.cursor = new am4charts.XYCursor();
+chart.cursor.xAxis = dateAxis;
+chart.cursor.fullWidthLineX = true;
+chart.cursor.lineX.strokeWidth = 0;
+chart.cursor.lineX.fill = am4core.color("#8F3985");
+chart.cursor.lineX.fillOpacity = 0.1;
+chart.cursor.lineY.disabled = true;
+chart.cursor.behavior = "zoomX";
 
 const info = chart.plotContainer.createChild(am4core.Container);
 info.width = am4core.percent(100);
