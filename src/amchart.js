@@ -57,10 +57,11 @@ function addPseudoDateData(verseData, index, array) {
     chapterWordPosition += prevVerseData.verseWordCount;
   }
   const date = new Date(verseData.bibleTextPosition);
-  return {...verseData, date, chapterWordPosition };
+  const chapterWordPositionEnd = chapterWordPosition + verseData.verseWordCount;
+  return {...verseData, date, chapterWordPosition, chapterWordPositionEnd };
 }
 
-const datedVersesData = versesData.map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
+const datedVersesData = versesData.filter(v => v.book === "Genesis").map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
 chart.data = datedVersesData;
 
 // Create axes
@@ -76,7 +77,7 @@ dateAxis.renderer.labels.template.verticalCenter = "top";
 dateAxis.renderer.labels.template.horizontalCenter = "left";
 dateAxis.cursorTooltipEnabled = false;
 
-dateAxis.groupData = true;
+// dateAxis.groupData = true;
 // dateAxis.groupCount = 350;
 
 function createSingleValueGridLine(valueAxis, value, label) {
@@ -104,15 +105,23 @@ const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.cursorTooltipEnabled = false;
 
 // Create series
-const series = chart.series.push(new am4charts.ColumnSeries());
+const series = chart.series.push(new am4charts.CandlestickSeries());
+series.dataFields.dateX = "date";
+series.dataFields.valueY = "chapterWordPositionEnd"; // "close";
+series.dataFields.openValueY = "chapterWordPosition"; // "open";
+series.dataFields.lowValueY = "chapterWordPosition"; // "low";
+series.dataFields.highValueY = "chapterWordPositionEnd"; // "high";
+/*
 series.dataFields.valueY = "chapterWordPosition";
 series.dataFields.dateX = "date";
+*/
 series.name = "Verses";
-series.groupFields.valueY = "max";
+series.groupFields.valueY = "sum";
+// series.groupFields.openValueY = "min";
 
 // Create scrollbars
 chart.scrollbarX = new am4core.Scrollbar();
-chart.scrollbarY = new am4core.Scrollbar();
+// chart.scrollbarY = new am4core.Scrollbar();
 
 chart.cursor = new am4charts.XYCursor();
 chart.cursor.xAxis = dateAxis;
