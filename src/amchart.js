@@ -61,7 +61,7 @@ function addPseudoDateData(verseData, index, array) {
   return {...verseData, date, chapterWordPosition, chapterWordPositionEnd };
 }
 
-const datedVersesData = versesData.filter(v => v.book === "Genesis").map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
+const datedVersesData = versesData.map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
 chart.data = datedVersesData;
 
 // Create axes
@@ -77,7 +77,7 @@ dateAxis.renderer.labels.template.verticalCenter = "top";
 dateAxis.renderer.labels.template.horizontalCenter = "left";
 dateAxis.cursorTooltipEnabled = false;
 
-// dateAxis.groupData = true;
+dateAxis.groupData = true;
 // dateAxis.groupCount = 350;
 
 function createSingleValueGridLine(valueAxis, value, label) {
@@ -116,8 +116,10 @@ series.dataFields.valueY = "chapterWordPosition";
 series.dataFields.dateX = "date";
 */
 series.name = "Verses";
-series.groupFields.valueY = "sum";
-// series.groupFields.openValueY = "min";
+series.groupFields.valueY = "max";
+series.groupFields.openValueY = "min";
+series.groupFields.lowValueY = "min";
+series.groupFields.highValueY = "max";
 
 // Create scrollbars
 chart.scrollbarX = new am4core.Scrollbar();
