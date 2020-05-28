@@ -72,34 +72,38 @@ dateAxis.renderer.grid.template.location = 0;
 dateAxis.minZoomCount = 5;
 
 dateAxis.renderer.labels.template.disabled = true;
-dateAxis.renderer.labels.template.rotation = 270;
-dateAxis.renderer.labels.template.verticalCenter = "top";
-dateAxis.renderer.labels.template.horizontalCenter = "left";
+// dateAxis.renderer.labels.template.dy = 40;
+// dateAxis.renderer.labels.template.rotation = -45;
+// dateAxis.renderer.labels.template.verticalCenter = "top";
+// dateAxis.renderer.labels.template.horizontalCenter = "left";
 dateAxis.cursorTooltipEnabled = false;
 
 dateAxis.groupData = true;
 // dateAxis.groupCount = 350;
 
-function createSingleValueGridLine(valueAxis, value, label) {
+function createSingleValueGridLine(valueAxis, value, label, labelIndex) {
   const range = valueAxis.axisRanges.create();
   range.date = value;
   range.grid.stroke = am4core.color("#396478");
   range.grid.strokeWidth = 2;
   range.grid.strokeOpacity = 1;
-  range.label.inside = true;
+  range.label.inside = false;
   range.label.text = label;
   range.label.fill = range.grid.stroke;
-  range.label.truncate = true;
-  range.label.maxWidth = 100;
+  range.label.paddingTop = (labelIndex % 11) * 20;
+  // range.label.y = -50;
+  // range.label.truncate = true;
+  // range.label.maxWidth = 100;
   range.label.location = 0.5;
+  // range.label.y = 100;
   //range.label.align = "right";
   // range.label.verticalCenter = "bottom";
   // range.label.paddingTop = 40;
   // range.label.horizontalCenter = "middle";
   // range.label.fontWeight = "bolder";
 }
-
-datedVersesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(dateAxis, v.date, v.book));
+let indexOfLabel = 0;
+datedVersesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(dateAxis, v.date, v.book, indexOfLabel++));
 
 const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.cursorTooltipEnabled = false;
