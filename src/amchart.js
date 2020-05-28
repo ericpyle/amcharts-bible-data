@@ -149,26 +149,44 @@ info.background.fillOpacity = 0.1;
 info.layout = "grid";
 
 // Create labels
-function createLabel(field, title) {
+function createBCVLabel() {
+  /*
   const titleLabel = info.createChild(am4core.Label);
   titleLabel.text = title + ":";
   titleLabel.marginRight = 5;
   titleLabel.minWidth = 60;
+  */
 
-  const valueLabel = info.createChild(am4core.Label);
-  valueLabel.id = field;
-  valueLabel.text = "-";
+  const bookLabel = info.createChild(am4core.Label);
+  bookLabel.id = 'book';
+  bookLabel.text = "-";
+  bookLabel.wrap = false;
+  const chapterLabel = info.createChild(am4core.Label);
+  chapterLabel.id = 'chapter';
+  chapterLabel.text = "-";
+  chapterLabel.wrap = false;
+  const cvSepLabel = info.createChild(am4core.Label);
+  cvSepLabel.text = ":";
+  cvSepLabel.wrap = false;
+  const verseLabel = info.createChild(am4core.Label);
+  verseLabel.id = 'verse';
+  verseLabel.text = "-";
+  verseLabel.wrap = false;
+  const textLabel = info.createChild(am4core.Label);
+  textLabel.id = 'text';
+  textLabel.text = "-";
+  textLabel.wrap = true;
+  textLabel.maxWidth = 800;
+  /*
   valueLabel.minWidth = 50;
   valueLabel.marginRight = 30;
   valueLabel.fontWeight = "bolder";
   valueLabel.wrap = true;
   valueLabel.maxWidth = 600;
+  */
 }
 
-createLabel("book", "Book");
-createLabel("chapter", "Chapter");
-createLabel("verse", "Verse");
-createLabel("text", "Text")
+createBCVLabel();
 
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
