@@ -12,13 +12,6 @@ am4core.useTheme(am4themes_animated);
 let chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.paddingRight = 20;
 
-let data = [];
-let visits = 10;
-for (let i = 1; i < 1000; i++) {
-  visits += Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 10);
-  data.push({ x: i, value: visits });
-}
-
 const sampleData = [
   {
       "book": "Genesis",
@@ -55,54 +48,214 @@ const sampleData = [
   }
 ];
 
-console.log(versesData);
-chart.data = versesData;
+let chapterWordPosition = 0;
+function addPseudoDateData(verseData, index, array) {
+  if (verseData.verse === "1") {
+    chapterWordPosition = 0;
+  } else {
+    const prevVerseData = array[index - 1];
+    chapterWordPosition += prevVerseData.verseWordCount;
+  }
+  const date = new Date(verseData.bibleTextPosition);
+  const chapterWordPositionEnd = chapterWordPosition + verseData.verseWordCount;
+  return {...verseData, date, chapterWordPosition, chapterWordPositionEnd };
+}
 
-let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
-xAxis.renderer.grid.template.location = 0;
-xAxis.minZoomCount = 5;
+const datedVersesData = versesData.map(addPseudoDateData); // .filter(v => v.book === "Genesis" || v.book === "Exodus")
+chart.data = datedVersesData;
 
-xAxis.renderer.labels.template.rotation = 270;
-xAxis.renderer.labels.template.verticalCenter = "middle";
-xAxis.renderer.labels.template.horizontalCenter = "left";
+// Create axes
+const dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+dateAxis.renderer.grid.template.location = 0.5;
+dateAxis.renderer.labels.template.location = 0.5;
+dateAxis.renderer.grid.template.location = 0;
+dateAxis.minZoomCount = 5;
 
-function createSingleValueGridLine(valueAxis, value, label) {
-  var range = valueAxis.axisRanges.create();
-  range.value = value;
+dateAxis.renderer.labels.template.disabled = true;
+// dateAxis.renderer.labels.template.dy = 40;
+// dateAxis.renderer.labels.template.rotation = -45;
+// dateAxis.renderer.labels.template.verticalCenter = "top";
+// dateAxis.renderer.labels.template.horizontalCenter = "left";
+dateAxis.cursorTooltipEnabled = false;
+
+dateAxis.groupData = true;
+// dateAxis.groupCount = 350;
+
+function createSingleValueGridLine(valueAxis, value, label, labelIndex) {
+  const range = valueAxis.axisRanges.create();
+  range.date = value;
   range.grid.stroke = am4core.color("#396478");
   range.grid.strokeWidth = 2;
   range.grid.strokeOpacity = 1;
-  range.label.inside = true;
+  range.label.inside = false;
   range.label.text = label;
   range.label.fill = range.grid.stroke;
-  range.label.truncate = true;
-  range.label.maxWidth = 100;
+  range.label.paddingTop = (labelIndex % 11) * 20;
+  // range.label.y = -50;
+  // range.label.truncate = true;
+  // range.label.maxWidth = 100;
   range.label.location = 0.5;
+  // range.label.y = 100;
   //range.label.align = "right";
   // range.label.verticalCenter = "bottom";
   // range.label.paddingTop = 40;
   // range.label.horizontalCenter = "middle";
   // range.label.fontWeight = "bolder";
 }
+let indexOfLabel = 0;
+datedVersesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(dateAxis, v.date, v.book, indexOfLabel++));
 
-versesData.filter(v => v.chapter === "1" && v.verse === "1").forEach(v => createSingleValueGridLine(xAxis, v.bibleTextPosition, v.book));
+const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.cursorTooltipEnabled = false;
 
-// this makes the data to be grouped
-// xAxis.groupData = true;
-// xAxis.groupCount = 500;
+// Create series
+const series = chart.series.push(new am4charts.CandlestickSeries());
+series.dataFields.dateX = "date";
+series.dataFields.valueY = "chapterWordPositionEnd"; // "close";
+series.dataFields.openValueY = "chapterWordPosition"; // "open";
+series.dataFields.lowValueY = "chapterWordPosition"; // "low";
+series.dataFields.highValueY = "chapterWordPositionEnd"; // "high";
+/*
+series.dataFields.valueY = "chapterWordPosition";
+series.dataFields.dateX = "date";
+*/
+series.name = "Verses";
+series.groupFields.valueY = "max";
+series.groupFields.openValueY = "min";
+series.groupFields.lowValueY = "min";
+series.groupFields.highValueY = "max";
 
-let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-
-let series = chart.series.push(new am4charts.LineSeries());
-series.dataFields.valueX = "bibleTextPosition";
-series.dataFields.valueY = "textLength";
-series.tooltipText = "{text}";
-series.tooltip.pointerOrientation = "vertical";
-series.tooltip.background.fillOpacity = 0.5;
+// Create scrollbars
+chart.scrollbarX = new am4core.Scrollbar();
+// chart.scrollbarY = new am4core.Scrollbar();
 
 chart.cursor = new am4charts.XYCursor();
-chart.cursor.xAxis = xAxis;
+chart.cursor.xAxis = dateAxis;
+chart.cursor.fullWidthLineX = true;
+chart.cursor.lineX.strokeWidth = 0;
+chart.cursor.lineX.fill = am4core.color("#8F3985");
+chart.cursor.lineX.fillOpacity = 0.1;
+chart.cursor.lineY.disabled = true;
+chart.cursor.behavior = "zoomX";
 
-let scrollbarX = new am4core.Scrollbar();
-scrollbarX.marginBottom = 20;
-chart.scrollbarX = scrollbarX;
+const info = chart.plotContainer.createChild(am4core.Container);
+info.width = am4core.percent(100);
+info.height = am4core.percent(20);
+info.x = 10;
+info.y = 10;
+info.padding(10, 10, 10, 10);
+info.background.fill = am4core.color("#000");
+info.background.fillOpacity = 0.1;
+info.layout = "grid";
+
+// Create labels
+function createBCVLabel() {
+  /*
+  const titleLabel = info.createChild(am4core.Label);
+  titleLabel.text = title + ":";
+  titleLabel.marginRight = 5;
+  titleLabel.minWidth = 60;
+  */
+
+  const bookLabel = info.createChild(am4core.Label);
+  bookLabel.id = 'book';
+  bookLabel.text = "-";
+  bookLabel.wrap = false;
+  const chapterLabel = info.createChild(am4core.Label);
+  chapterLabel.id = 'chapter';
+  chapterLabel.text = "-";
+  chapterLabel.wrap = false;
+  const cvSepLabel = info.createChild(am4core.Label);
+  cvSepLabel.text = ":";
+  cvSepLabel.wrap = false;
+  const verseLabel = info.createChild(am4core.Label);
+  verseLabel.id = 'verse';
+  verseLabel.text = "-";
+  verseLabel.wrap = false;
+  const textLabel = info.createChild(am4core.Label);
+  textLabel.id = 'text';
+  textLabel.text = "-";
+  textLabel.wrap = true;
+  textLabel.maxWidth = 800;
+  /*
+  valueLabel.minWidth = 50;
+  valueLabel.marginRight = 30;
+  valueLabel.fontWeight = "bolder";
+  valueLabel.wrap = true;
+  valueLabel.maxWidth = 600;
+  */
+}
+
+createBCVLabel();
+
+// Set up cursor's events to update the label
+chart.cursor.events.on("cursorpositionchanged", function(ev) {
+  const dataItem = dateAxis.getSeriesDataItem(
+    series,
+    dateAxis.toAxisPosition(chart.cursor.xPosition),
+    true
+  );
+  updateValues(dataItem);
+});
+
+// Updates values
+function updateValues(dataItem) {
+  am4core.array.each(["book", "chapter", "verse", "text"], function(key) {
+    const label = chart.map.getKey(key);
+    if (!dataItem)
+      return;
+    const text = dataItem.dataContext[key];
+    label.text = text;
+    /*
+    if (dataItem.droppedFromOpen) {
+      label.fill = series.dropFromOpenState.properties.fill;
+    }
+    else {
+      label.fill = series.riseFromOpenState.properties.fill;
+    }
+    */
+  });
+}
+
+/*
+series.events.on("hidden", updateTooltipText);
+series.events.on("shown", updateTooltipText);
+*/
+
+/* Add a single tooltip to first series */
+/*
+var tooltipText = `[bold]YEAR {categoryX}[/]
+----
+Cars: {cars}
+Motorcycles: {motorcycles}
+Bicycles: {bicycles}`;
+*/
+/*
+series.tooltip.pointerOrientation = "vertical";
+series.tooltipText = "";
+
+series.adapter.add('tooltipText', (text, target) => {
+  const data = target.tooltipDataItem.dataContext;
+  return `[bold]${data.book} ${data.chapter}:${data.verse}[/]\n${data.text}`;
+});
+*/
+
+/*
+dateAxis.adapter.add("getTooltipText", (text, target) => {
+  const data = target.tooltipDataItem.dataContext;
+  return `[bold]${data.book} ${data.chapter}:${data.verse}[/]`;
+ });
+ */
+/*
+// Add data
+chart.data = [{
+  "date": new Date(2018, 3, 20),
+  "value": 90
+}, {
+  "date": new Date(2018, 3, 21),
+  "value": 102
+}, {
+  "date": new Date(2018, 3, 27),
+  "value": 65
+}];
+*/
