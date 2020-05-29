@@ -91,15 +91,17 @@ function createSingleValueGridLine(valueAxis, value, label, labelIndex) {
   range.label.text = label;
   range.label.fill = range.grid.stroke;
   range.label.paddingTop = (labelIndex % 11) * 20;
+  range.label.paddingLeft = 0;
   // range.label.y = -50;
+  // range.label.x = -50;
   // range.label.truncate = true;
   // range.label.maxWidth = 100;
-  range.label.location = 0.5;
+  // range.label.location = 0.001;
   // range.label.y = 100;
-  //range.label.align = "right";
+  // range.label.align = "right";
   // range.label.verticalCenter = "bottom";
   // range.label.paddingTop = 40;
-  // range.label.horizontalCenter = "middle";
+  range.label.horizontalCenter = "left";
   // range.label.fontWeight = "bolder";
 }
 let indexOfLabel = 0;
