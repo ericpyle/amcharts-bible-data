@@ -138,7 +138,7 @@ chart.cursor.lineX.strokeWidth = 0;
 chart.cursor.lineX.fill = am4core.color("#8F3985");
 chart.cursor.lineX.fillOpacity = 0.1;
 chart.cursor.lineY.disabled = true;
-chart.cursor.behavior = "zoomX";
+chart.cursor.behavior = "selectX";
 
 const info = chart.plotContainer.createChild(am4core.Container);
 info.width = am4core.percent(100);
@@ -151,7 +151,7 @@ info.background.fillOpacity = 0.1;
 info.layout = "grid";
 
 // Create labels
-function createBCVLabel() {
+function createBCVLabel(postFix) {
   /*
   const titleLabel = info.createChild(am4core.Label);
   titleLabel.text = title + ":";
@@ -160,22 +160,22 @@ function createBCVLabel() {
   */
 
   const bookLabel = info.createChild(am4core.Label);
-  bookLabel.id = 'book';
+  bookLabel.id = `book${postFix}`;
   bookLabel.text = "-";
   bookLabel.wrap = false;
   const chapterLabel = info.createChild(am4core.Label);
-  chapterLabel.id = 'chapter';
+  chapterLabel.id = `chapter${postFix}`;
   chapterLabel.text = "-";
   chapterLabel.wrap = false;
   const cvSepLabel = info.createChild(am4core.Label);
   cvSepLabel.text = ":";
   cvSepLabel.wrap = false;
   const verseLabel = info.createChild(am4core.Label);
-  verseLabel.id = 'verse';
+  verseLabel.id = `verse${postFix}`;
   verseLabel.text = "-";
   verseLabel.wrap = false;
   const textLabel = info.createChild(am4core.Label);
-  textLabel.id = 'text';
+  textLabel.id = `text${postFix}`;
   textLabel.text = "-";
   textLabel.wrap = true;
   textLabel.maxWidth = 800;
@@ -188,26 +188,64 @@ function createBCVLabel() {
   */
 }
 
-createBCVLabel();
+createBCVLabel('-start');
+createBCVLabel('-end')
+
+chart.cursor.events.on("selectended", function(ev) {
+  var range = ev.target.xRange;
+  if (!range) {
+    return;
+  }
+  /*
+  var axis = ev.target.chart.xAxes.getIndex(0);
+  var from = axis.getPositionLabel(axis.toAxisPosition(range.start));
+  var to = axis.getPositionLabel(axis.toAxisPosition(range.end));
+  alert("Selected from " + from + " to " + to);
+  */
+  const dataItemStart = dateAxis.getSeriesDataItem(
+    series,
+    dateAxis.toAxisPosition(range.start),
+    true
+  );
+  const dataItemEnd = dateAxis.getSeriesDataItem(
+    series,
+    dateAxis.toAxisPosition(range.end),
+    true
+  );
+  updateValues(dataItemStart, '-start', false);
+  updateValues(dataItemEnd, '-end', false);
+});
 
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
+  var range = ev.target.xRange;
+  if (range) {
+    return;
+  }
   const dataItem = dateAxis.getSeriesDataItem(
     series,
     dateAxis.toAxisPosition(chart.cursor.xPosition),
     true
   );
-  updateValues(dataItem);
+  // dataItem.groupDataItems[0]
+  if (dataItem.groupDataItems && dataItem.groupDataItems.length > 1) {
+    updateValues(dataItem.groupDataItems[0], '-start', false)
+    updateValues(dataItem, '-end', false)
+  } else {
+    updateValues(dataItem, '-start', false);
+    updateValues(dataItem, '-end', true)
+  }
 });
 
 // Updates values
-function updateValues(dataItem) {
+function updateValues(dataItem, postFix, disabled) {
   am4core.array.each(["book", "chapter", "verse", "text"], function(key) {
-    const label = chart.map.getKey(key);
+    const label = chart.map.getKey(`${key}${postFix}`);
     if (!dataItem)
       return;
     const text = dataItem.dataContext[key];
     label.text = text;
+    label.disabled = disabled;
     /*
     if (dataItem.droppedFromOpen) {
       label.fill = series.dropFromOpenState.properties.fill;
