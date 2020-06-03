@@ -117,6 +117,7 @@ series.dataFields.valueY = "chapterWordPositionEnd"; // "close";
 series.dataFields.openValueY = "chapterWordPosition"; // "open";
 series.dataFields.lowValueY = "chapterWordPosition"; // "low";
 series.dataFields.highValueY = "chapterWordPositionEnd"; // "high";
+
 /*
 series.dataFields.valueY = "chapterWordPosition";
 series.dataFields.dateX = "date";
@@ -191,17 +192,53 @@ function createBCVLabel(postFix) {
 createBCVLabel('-start');
 createBCVLabel('-end')
 
+chart.cursor.events.on("hidden", function(ev) {
+  var range = ev.target.xRange;
+  if (range) {
+    const dataItemStart = dateAxis.getSeriesDataItem(
+      series,
+      dateAxis.toAxisPosition(range.start),
+      true
+    );
+    const dataItemEnd = dateAxis.getSeriesDataItem(
+      series,
+      dateAxis.toAxisPosition(range.end),
+      true
+    );
+    if (dataItemStart.groupDataItems && dataItemStart.groupDataItems.length > 1) {
+      updateValues(dataItemStart.groupDataItems[0], '-start', false);
+    } else {
+      updateValues(dataItemStart, '-start', false);
+    }
+    updateValues(dataItemEnd, '-end', false);
+    return;
+  }
+  if (ev.target.selection) {
+    const dataItemStart = dateAxis.getSeriesDataItem(series,
+      dateAxis.toAxisPosition(ev.target.selection), true);
+      if (dataItemStart.groupDataItems && dataItemStart.groupDataItems.length > 1) {
+        updateValues(dataItemStart.groupDataItems[0], '-start', false);
+        updateValues(dataItemStart.groupDataItems[dataItemStart.groupDataItems.length - 1], '-end', false);
+      } else {
+        updateValues(dataItemStart, '-start', false);
+        updateValues(dataItemStart, '-end', true);
+      }
+      return;
+  }
+
+  
+});
+
+/*
 chart.cursor.events.on("selectended", function(ev) {
   var range = ev.target.xRange;
   if (!range) {
     return;
   }
-  /*
-  var axis = ev.target.chart.xAxes.getIndex(0);
-  var from = axis.getPositionLabel(axis.toAxisPosition(range.start));
-  var to = axis.getPositionLabel(axis.toAxisPosition(range.end));
-  alert("Selected from " + from + " to " + to);
-  */
+  // var axis = ev.target.chart.xAxes.getIndex(0);
+  // var from = axis.getPositionLabel(axis.toAxisPosition(range.start));
+  // var to = axis.getPositionLabel(axis.toAxisPosition(range.end));
+  // alert("Selected from " + from + " to " + to);
   const dataItemStart = dateAxis.getSeriesDataItem(
     series,
     dateAxis.toAxisPosition(range.start),
@@ -215,11 +252,11 @@ chart.cursor.events.on("selectended", function(ev) {
   updateValues(dataItemStart, '-start', false);
   updateValues(dataItemEnd, '-end', false);
 });
+*/
 
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
-  var range = ev.target.xRange;
-  if (range) {
+  if (chart.cursor.isHiding || chart.cursor.isHidden) {
     return;
   }
   const dataItem = dateAxis.getSeriesDataItem(
