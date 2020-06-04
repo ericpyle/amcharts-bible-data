@@ -213,9 +213,9 @@ chart.cursor.events.on("hidden", function(ev) {
     updateValues(dataItemEnd, '-end', false);
     return;
   }
-  if (ev.target.selection) {
+  if (xPositionSelectStarted) {
     const dataItemStart = dateAxis.getSeriesDataItem(series,
-      dateAxis.toAxisPosition(ev.target.selection), true);
+      dateAxis.toAxisPosition(xPositionSelectStarted), true);
       if (dataItemStart.groupDataItems && dataItemStart.groupDataItems.length > 1) {
         updateValues(dataItemStart.groupDataItems[0], '-start', false);
         updateValues(dataItemStart.groupDataItems[dataItemStart.groupDataItems.length - 1], '-end', false);
@@ -229,48 +229,49 @@ chart.cursor.events.on("hidden", function(ev) {
   
 });
 
-/*
-chart.cursor.events.on("selectended", function(ev) {
-  var range = ev.target.xRange;
-  if (!range) {
-    return;
-  }
-  // var axis = ev.target.chart.xAxes.getIndex(0);
-  // var from = axis.getPositionLabel(axis.toAxisPosition(range.start));
-  // var to = axis.getPositionLabel(axis.toAxisPosition(range.end));
-  // alert("Selected from " + from + " to " + to);
-  const dataItemStart = dateAxis.getSeriesDataItem(
-    series,
-    dateAxis.toAxisPosition(range.start),
-    true
-  );
-  const dataItemEnd = dateAxis.getSeriesDataItem(
-    series,
-    dateAxis.toAxisPosition(range.end),
-    true
-  );
-  updateValues(dataItemStart, '-start', false);
-  updateValues(dataItemEnd, '-end', false);
+let xPositionSelectStarted = null;
+chart.cursor.events.on("selectstarted", function(ev) {
+  xPositionSelectStarted = ev.target.xPosition;
+  xPositionSelectEnded = null;
 });
-*/
+
+let xPositionSelectEnded = null;
+chart.cursor.events.on("selectended", function(ev) {
+  if (ev.target.xPosition !== xPositionSelectStarted) {
+    xPositionSelectStarted = null;
+    // console.log({ selectended: ev.target.xPosition });
+  }
+  xPositionSelectEnded = ev.target.xPosition;
+});
 
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
+  // console.log({ cursorpositionchanged: ev.target.xPosition });
   if (chart.cursor.isHiding || chart.cursor.isHidden) {
     return;
   }
-  const dataItem = dateAxis.getSeriesDataItem(
+  if (ev.target.xPosition === xPositionSelectEnded) {
+    return;
+  }
+  const xPosStart = xPositionSelectStarted || chart.cursor.xPosition;
+  const dataItemStarted = dateAxis.getSeriesDataItem(
     series,
-    dateAxis.toAxisPosition(chart.cursor.xPosition),
+    dateAxis.toAxisPosition(xPosStart),
     true
   );
-  // dataItem.groupDataItems[0]
-  if (dataItem.groupDataItems && dataItem.groupDataItems.length > 1) {
-    updateValues(dataItem.groupDataItems[0], '-start', false)
-    updateValues(dataItem, '-end', false)
+  const dataItemEnded = !xPositionSelectStarted ? dataItemStarted :
+    dateAxis.getSeriesDataItem(
+      series,
+      dateAxis.toAxisPosition(chart.cursor.xPosition),
+      true
+    );
+  // dataItemStarted.groupDataItems[0]
+  if (dataItemStarted.groupDataItems && dataItemStarted.groupDataItems.length > 1) {
+    updateValues(dataItemStarted.groupDataItems[0], '-start', false)
+    updateValues(dataItemEnded, '-end', false)
   } else {
-    updateValues(dataItem, '-start', false);
-    updateValues(dataItem, '-end', true)
+    updateValues(dataItemStarted, '-start', false);
+    updateValues(dataItemEnded, '-end', true)
   }
 });
 
