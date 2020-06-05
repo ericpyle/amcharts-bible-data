@@ -143,7 +143,6 @@ chart.cursor.behavior = "selectX";
 
 const info = chart.plotContainer.createChild(am4core.Container);
 info.width = am4core.percent(100);
-info.height = am4core.percent(20);
 info.x = 10;
 info.y = 10;
 info.padding(10, 10, 10, 10);
@@ -153,33 +152,10 @@ info.layout = "grid";
 
 // Create labels
 function createBCVLabel(postFix) {
-  /*
-  const titleLabel = info.createChild(am4core.Label);
-  titleLabel.text = title + ":";
-  titleLabel.marginRight = 5;
-  titleLabel.minWidth = 60;
-  */
-
   const bookLabel = info.createChild(am4core.Label);
-  bookLabel.id = `book${postFix}`;
-  bookLabel.text = "-";
-  bookLabel.wrap = false;
-  const chapterLabel = info.createChild(am4core.Label);
-  chapterLabel.id = `chapter${postFix}`;
-  chapterLabel.text = "-";
-  chapterLabel.wrap = false;
-  const cvSepLabel = info.createChild(am4core.Label);
-  cvSepLabel.text = ":";
-  cvSepLabel.wrap = false;
-  const verseLabel = info.createChild(am4core.Label);
-  verseLabel.id = `verse${postFix}`;
-  verseLabel.text = "-";
-  verseLabel.wrap = false;
-  const textLabel = info.createChild(am4core.Label);
-  textLabel.id = `text${postFix}`;
-  textLabel.text = "-";
-  textLabel.wrap = true;
-  textLabel.maxWidth = 800;
+  bookLabel.id = `bcv${postFix}`;
+  bookLabel.wrap = true;
+  bookLabel.width = am4core.percent(90);
   /*
   valueLabel.minWidth = 50;
   valueLabel.marginRight = 30;
@@ -277,22 +253,20 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
 
 // Updates values
 function updateValues(dataItem, postFix, disabled) {
-  am4core.array.each(["book", "chapter", "verse", "text"], function(key) {
-    const label = chart.map.getKey(`${key}${postFix}`);
-    if (!dataItem)
-      return;
-    const text = dataItem.dataContext[key];
-    label.text = text;
-    label.disabled = disabled;
-    /*
-    if (dataItem.droppedFromOpen) {
-      label.fill = series.dropFromOpenState.properties.fill;
-    }
-    else {
-      label.fill = series.riseFromOpenState.properties.fill;
-    }
-    */
-  });
+  const label = chart.map.getKey(`bcv${postFix}`);
+  if (!dataItem)
+    return;
+  const { book, chapter, verse, text } = dataItem.dataContext;
+  label.text = `(${book} ${chapter}:${verse}) ${text}`;
+  label.disabled = disabled;
+  /*
+  if (dataItem.droppedFromOpen) {
+    label.fill = series.dropFromOpenState.properties.fill;
+  }
+  else {
+    label.fill = series.riseFromOpenState.properties.fill;
+  }
+  */
 }
 
 /*
