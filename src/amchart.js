@@ -192,14 +192,14 @@ chart.cursor.events.on("hidden", function(ev) {
   if (xPositionSelectStarted) {
     const dataItemStart = dateAxis.getSeriesDataItem(series,
       dateAxis.toAxisPosition(xPositionSelectStarted), true);
-      if (dataItemStart.groupDataItems && dataItemStart.groupDataItems.length > 1) {
-        updateValues(dataItemStart.groupDataItems[0], '-start', false);
-        updateValues(dataItemStart.groupDataItems[dataItemStart.groupDataItems.length - 1], '-end', false);
-      } else {
-        updateValues(dataItemStart, '-start', false);
-        updateValues(dataItemStart, '-end', true);
-      }
-      return;
+    if (dataItemStart.groupDataItems && dataItemStart.groupDataItems.length > 1) {
+      updateValues(dataItemStart.groupDataItems[0], '-start', false);
+      updateValues(dataItemStart.groupDataItems[dataItemStart.groupDataItems.length - 1], '-end', false);
+    } else {
+      updateValues(dataItemStart, '-start', false);
+      updateValues(dataItemStart, '-end', true);
+    }
+    return;
   }
 
   
@@ -243,11 +243,14 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
     );
   // dataItemStarted.groupDataItems[0]
   if (dataItemStarted.groupDataItems && dataItemStarted.groupDataItems.length > 1) {
-    updateValues(dataItemStarted.groupDataItems[0], '-start', false)
-    updateValues(dataItemEnded, '-end', false)
+    updateValues(dataItemStarted.groupDataItems[0], '-start', false);
   } else {
     updateValues(dataItemStarted, '-start', false);
-    updateValues(dataItemEnded, '-end', true)
+  }
+  if (dataItemEnded.groupDataItems && dataItemEnded.groupDataItems.length > 1) {
+    updateValues(dataItemEnded.groupDataItems[0], '-end', false);
+  } else {
+    updateValues(dataItemEnded, '-end', true);
   }
 });
 
