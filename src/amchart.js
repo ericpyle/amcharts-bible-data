@@ -165,9 +165,6 @@ function createBCVLabel(postFix) {
   */
 }
 
-createBCVLabel('-start');
-createBCVLabel('-end')
-
 chart.cursor.events.on("hidden", function(ev) {
   var range = ev.target.xRange;
   if (range) {
@@ -247,7 +244,8 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
   } else {
     updateValues(dataItemStarted, '-start', false);
   }
-  if (dataItemEnded.groupDataItems && dataItemEnded.groupDataItems.length > 1) {
+  if (dataItemEnded !== dataItemStarted &&
+    dataItemEnded.groupDataItems && dataItemEnded.groupDataItems.length > 1) {
     updateValues(dataItemEnded.groupDataItems[0], '-end', false);
   } else {
     updateValues(dataItemEnded, '-end', true);
@@ -256,12 +254,16 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
 
 // Updates values
 function updateValues(dataItem, postFix, disabled) {
-  const label = chart.map.getKey(`bcv${postFix}`);
-  if (!dataItem)
-    return;
+  let label = chart.map.getKey(`bcv${postFix}`);
+  if (!label) {
+    createBCVLabel('-start');
+    createBCVLabel('-end');
+    label = chart.map.getKey(`bcv${postFix}`);
+  }
   const { book, chapter, verse, text } = dataItem.dataContext;
   label.text = `(${book} ${chapter}:${verse}) ${text}`;
   label.disabled = disabled;
+  console.log({ postFix, disabled, labelText: label.text, labelDisabled: label.disabled });
   /*
   if (dataItem.droppedFromOpen) {
     label.fill = series.dropFromOpenState.properties.fill;
