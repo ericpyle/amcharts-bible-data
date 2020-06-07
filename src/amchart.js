@@ -223,7 +223,8 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
   if (chart.cursor.isHiding || chart.cursor.isHidden) {
     return;
   }
-  if (ev.target.xPosition === xPositionSelectEnded) {
+  if (ev.target.xPosition === xPositionSelectEnded &&
+    xPositionSelectStarted !== xPositionSelectEnded) {
     return;
   }
   const xPosStart = xPositionSelectStarted || chart.cursor.xPosition;
@@ -261,8 +262,10 @@ function updateValues(dataItem, postFix, disabled) {
     label = chart.map.getKey(`bcv${postFix}`);
   }
   const { book, chapter, verse, text } = dataItem.dataContext;
-  label.text = `(${book} ${chapter}:${verse}) ${text}`;
   label.disabled = disabled;
+  if (!disabled) {
+    label.text = `(${book} ${chapter}:${verse}) ${text}`;
+  }
   console.log({ postFix, disabled, labelText: label.text, labelDisabled: label.disabled });
   /*
   if (dataItem.droppedFromOpen) {
