@@ -139,7 +139,7 @@ chart.cursor.lineX.strokeWidth = 0;
 chart.cursor.lineX.fill = am4core.color("#8F3985");
 chart.cursor.lineX.fillOpacity = 0.1;
 chart.cursor.lineY.disabled = true;
-chart.cursor.behavior = "selectX";
+chart.cursor.behavior = "zoomX";
 
 const info = chart.plotContainer.createChild(am4core.Container);
 info.width = am4core.percent(100);
