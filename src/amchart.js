@@ -217,6 +217,8 @@ chart.cursor.events.on("selectended", function(ev) {
   xPositionSelectEnded = ev.target.xPosition;
 });
 
+let lastStartDataItem = null;
+
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
   // console.log({ cursorpositionchanged: ev.target.xPosition });
@@ -227,6 +229,7 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
     xPositionSelectStarted !== xPositionSelectEnded) {
     return;
   }
+
   const xPosStart = xPositionSelectStarted || chart.cursor.xPosition;
   const dataItemStarted = dateAxis.getSeriesDataItem(
     series,
@@ -239,18 +242,22 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
       dateAxis.toAxisPosition(chart.cursor.xPosition),
       true
     );
+  if (lastStartDataItem && lastStartDataItem.groupDataItems && lastStartDataItem.groupDataItems[0] === dataItemStarted) {
+    return;
+  }
   // dataItemStarted.groupDataItems[0]
   if (dataItemStarted.groupDataItems && dataItemStarted.groupDataItems.length > 1) {
     updateValues(dataItemStarted.groupDataItems[0], '-start', false);
   } else {
     updateValues(dataItemStarted, '-start', false);
   }
-  if (dataItemEnded !== dataItemStarted &&
-    dataItemEnded.groupDataItems && dataItemEnded.groupDataItems.length > 1) {
-    updateValues(dataItemEnded.groupDataItems[0], '-end', false);
+  if (dataItemEnded.groupDataItems && dataItemEnded.groupDataItems.length > 1) {
+    const iEnd = dataItemEnded !== dataItemStarted ? 0 : dataItemEnded.groupDataItems.length - 1;
+    updateValues(dataItemEnded.groupDataItems[iEnd], '-end', false);
   } else {
     updateValues(dataItemEnded, '-end', true);
   }
+  lastStartDataItem = dataItemStarted;
 });
 
 // Updates values
