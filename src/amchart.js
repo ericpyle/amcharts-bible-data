@@ -269,9 +269,10 @@ chart.cursor.events.on("behaviorcanceled", function(ev) {
     updateValues(dataItemStarted, '-start', false);
   }
   */
-  const endDate = dateAxis.positionToDate(zoomStartedAt);
+  const startDate = dataItemStart.dataContext.date;
+  const endDate = dataItemEnd.dataContext.date;
   dateAxis.zoomToDates(
-    endDate,
+    startDate,
     endDate
   );
   zoomStartedAt = false;
@@ -318,6 +319,9 @@ chart.cursor.events.on("cursorpositionchanged", function(ev) {
   lastStartDataItem = dataItemStarted;
 });
 
+let dataItemStart;
+let dataItemEnd;
+
 // Updates values
 function updateValues(dataItem, postFix, disabled) {
   let label = chart.map.getKey(`bcv${postFix}`);
@@ -325,6 +329,17 @@ function updateValues(dataItem, postFix, disabled) {
     createBCVLabel('-start');
     createBCVLabel('-end');
     label = chart.map.getKey(`bcv${postFix}`);
+  }
+  if (postFix === '-start') {
+    dataItemStart = dataItem;
+  }
+  else {
+    if (disabled) {
+      dataItemEnd = dataItemStart;
+    }
+    else {
+      dataItemEnd = dataItem;
+    }
   }
   const { book, chapter, verse, text } = dataItem.dataContext;
   label.disabled = disabled;
