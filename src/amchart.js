@@ -9,6 +9,8 @@ import { default as versesData } from './kjv-verses.json';
 am4core.useTheme(am4themes_animated);
 // Themes end
 
+am4core.options.minPolylineStep = 5; // for performance?
+
 let chart = am4core.create("chartdiv", am4charts.XYChart);
 chart.paddingRight = 20;
 
@@ -210,14 +212,70 @@ chart.cursor.events.on("selectstarted", function(ev) {
 
 let xPositionSelectEnded = null;
 chart.cursor.events.on("selectended", function(ev) {
+  console.log({selectended: ev.target.xPosition });
+  xPositionSelectEnded = ev.target.xPosition;
   if (ev.target.xPosition !== xPositionSelectStarted) {
     xPositionSelectStarted = null;
     // console.log({ selectended: ev.target.xPosition });
   }
-  xPositionSelectEnded = ev.target.xPosition;
+  /*
+  const startDate = dateAxis.positionToDate(xPositionSelectStarted); // move above
+  const endDate = dateAxis.positionToDate(xPositionSelectEnded);
+  dateAxis.zoomToDates(
+    startDate,
+    endDate
+  );
+  */
 });
 
 let lastStartDataItem = null;
+
+dateAxis.events.on("startchanged", dateAxisChanged);
+dateAxis.events.on("endchanged", dateAxisChanged);
+function dateAxisChanged(ev) {
+  console.log("DateAxis zoomed!", ev);
+}
+
+chart.cursor.events.onAll(function(ev) {
+  console.log("something happened ", ev);
+}, this);
+
+let zoomStartedAt;
+chart.cursor.events.on("zoomstarted", function(ev) {
+  console.log("zoomStarted ", ev);
+  zoomStartedAt = ev.target.xPosition;
+}, this);
+
+chart.cursor.events.on("zoomended", function(ev) {
+  console.log("zoomEnded ", ev);
+  zoomStartedAt = undefined;
+}, this);
+
+chart.cursor.events.on("behaviorcanceled", function(ev) {
+  console.log("behaviorcanceled ", ev);
+  if (ev.target.behavior !== 'zoomX' || !zoomStartedAt) {
+    return;
+  }
+  /*
+    const dataItemStarted = dateAxis.getSeriesDataItem(
+    series,
+    dateAxis.toAxisPosition(zoomStartedAt),
+    true
+    );
+  let startDate;
+  if (dataItemStarted.groupDataItems && dataItemStarted.groupDataItems.length > 1) {
+    startDate = dataItemStarted.groupDataItems[0].xPosition;
+  } else {
+    updateValues(dataItemStarted, '-start', false);
+  }
+  */
+  const endDate = dateAxis.positionToDate(zoomStartedAt);
+  dateAxis.zoomToDates(
+    endDate,
+    endDate
+  );
+  zoomStartedAt = false;
+}, this);
 
 // Set up cursor's events to update the label
 chart.cursor.events.on("cursorpositionchanged", function(ev) {
@@ -273,7 +331,7 @@ function updateValues(dataItem, postFix, disabled) {
   if (!disabled) {
     label.text = `(${book} ${chapter}:${verse}) ${text}`;
   }
-  console.log({ postFix, disabled, labelText: label.text, labelDisabled: label.disabled });
+  // console.log({ postFix, disabled, labelText: label.text, labelDisabled: label.disabled });
   /*
   if (dataItem.droppedFromOpen) {
     label.fill = series.dropFromOpenState.properties.fill;
