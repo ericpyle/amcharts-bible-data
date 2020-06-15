@@ -12,6 +12,7 @@ am4core.useTheme(am4themes_animated);
 am4core.options.minPolylineStep = 5; // for performance?
 
 let chart = am4core.create("chartdiv", am4charts.XYChart);
+chart.zoomOutButton.parent = chart.tooltipContainer;
 chart.paddingRight = 20;
 
 const sampleData = [
