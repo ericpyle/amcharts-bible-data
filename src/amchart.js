@@ -72,7 +72,7 @@ const dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 dateAxis.renderer.grid.template.location = 0.5;
 dateAxis.renderer.labels.template.location = 0.5;
 dateAxis.renderer.grid.template.location = 0;
-dateAxis.minZoomCount = 5;
+dateAxis.minZoomCount = 1000;
 
 dateAxis.renderer.labels.template.disabled = true;
 // dateAxis.renderer.labels.template.dy = 40;
